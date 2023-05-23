@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -23,14 +22,17 @@ class LoginController extends Controller
     if ($validator->fails()) {
         return response()->json($validator->errors())->setStatusCode(422);
     }
-        DB::table('users')->insert([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+       $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'messages' => 'Register Success!'
+            'messages' => 'Register Success!',
+            'token' => $token,
         ])->setStatusCode(201);
     }
 
@@ -42,9 +44,32 @@ class LoginController extends Controller
         ])->setStatusCode(401);
         }
 
+        $user = User::where('email',$request->email)->firstOrFail();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+
+
     return response()->json([
         'messages' => 'Login Success',
+        'token' => $token,
     ])->setStatusCode(200);
     
+    }
+
+    public function logout(){
+        auth()->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'messages' => 'Logout Success!'
+        ])->setStatusCode(200);
+    }
+
+    public function getData(){
+        $data = User::all();
+
+        return response()->json([
+            'messages' => 'Get Data Success!',
+            'data' => $data
+        ])->setStatusCode(200);
     }
 }

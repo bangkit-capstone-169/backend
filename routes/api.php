@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\LoginController;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,12 +17,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+Route::middleware('auth:sanctum')->group(function(){
+    Route::get('/user', [LoginController::class,'getData']);
+    Route::post('/logout',[LoginController::class,'logout']);
+});
 
 Route::post('/register',[LoginController::class,'regist'])->middleware('guest');
 Route::post('/login',[LoginController::class,'authenticate'])->middleware('guest');
-Route::get('/data', function(){
-    return auth()->user()->name;
+Route::get('/test', function(){
+    $data = Auth::user();
+    return response()->json([
+        'data'=>$data,
+    ]);
 });
+Route::get('/error',[LoginController::class,'error'])->name('login');
